@@ -7,7 +7,7 @@
 	<Nullable>enable</Nullable>
 	<ApplicationIcon>Assets\sim.ico</ApplicationIcon>
 	<AssemblyName>$(MSBuildProjectName)</AssemblyName>
-	<AssemblyVersion>0.1</AssemblyVersion>
+	<AssemblyVersion>0.2</AssemblyVersion>
 	<FileVersion>$(AssemblyVersion)</FileVersion>
 	<Version>$(AssemblyVersion)</Version>
 	<AssemblyName>APRT</AssemblyName>

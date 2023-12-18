@@ -24,7 +24,33 @@ namespace aprt
                     readerNames = context.GetReaders();
                 }
 
-                string readerName = readerNames[0];
+                string? readerName = null;
+
+                if (readerNames.Length > 1)
+                {
+                    for (int i = 0; i < readerNames.Length; i++)
+                    {
+                        Console.WriteLine($"{i}: {readerNames[i]}");
+                    }
+                    while (readerName == null)
+                    {
+                        Console.Write("Select a reader -> ");
+                        string? reader = Console.ReadLine();
+
+                        if (int.TryParse(reader, out int index))
+                        {
+                            if (index < readerNames.Length)
+                            {
+                                readerName = readerNames[index];
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    readerName = readerNames[0];
+                }
+
                 using SCardReader rfidReader = new(context);
 
                 while (true)
@@ -90,7 +116,6 @@ namespace aprt
                             {
                                 Console.WriteLine("ERROR: Incorrect PIN.\n");
                             }
-                            rfidReader.Disconnect(SCardReaderDisposition.Eject);
                         }
                         else
                         {
@@ -101,6 +126,7 @@ namespace aprt
                     {
                         Console.WriteLine("ERROR Cannot select EF ICCID file.\n");
                     }
+                    rfidReader.Disconnect(SCardReaderDisposition.Eject);
                 }
             }
             catch (Exception ex)
