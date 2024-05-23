@@ -33,6 +33,7 @@ namespace aprt
             byte[] pinBytes = System.Text.Encoding.ASCII.GetBytes(pin);
             const byte disableCommand = 0x26;
 
+
             return new CommandApdu(IsoCase.Case3Short, protocol)
             {
                 CLA = 0xA0, // Class
@@ -42,5 +43,21 @@ namespace aprt
                 Data = pinBytes.Concat(new byte[8 - pinBytes.Length].Select(b => (byte)0xFF)).ToArray()
             };
         }
+
+        public static CommandApdu EnablePIN(SCardProtocol protocol, string pin)
+        {
+            byte[] pinBytes = System.Text.Encoding.ASCII.GetBytes(pin);
+            const byte enableCommand = 0x28;
+
+            return new CommandApdu(IsoCase.Case3Short, protocol)
+            {
+                CLA = 0xA0, // Class
+                INS = enableCommand,
+                P1 = 0x00, // Parameter 1
+                P2 = 0x01, // Parameter 2 (PIN1)
+                Data = pinBytes.Concat(new byte[8 - pinBytes.Length].Select(b => (byte)0xFF)).ToArray()
+            };
+        }
+
     }
 }
