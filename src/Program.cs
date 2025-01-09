@@ -1,43 +1,26 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using PCSC;
+﻿using PCSC;
 using PCSC.Iso7816;
-using System.Globalization;
 using System.Reflection;
 
 namespace aprt
 {
     internal class Program
     {
+        static List<PinRecord>? records;
 
-
-    static List<PinRecord>? records;
-
-    static List<PinRecord>? ReadCsvFile(string filePath)
-    {
-        try {
-
-            using var reader = new StreamReader(filePath);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture));
-            return new List<PinRecord>(csv.GetRecords<PinRecord>());
-     }
-     catch{
-        return null;
-     }
-    }
         private static void Main(string[] args)
         {
-
             string? version = Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString();
             Console.WriteLine($"APRT (Assisted PIN Remove Tool) PC/SC {version} by aeri\n\n");
-            
-            var csvFilePath = "pins.csv";
-            records = ReadCsvFile(csvFilePath);
 
-            if (records != null){
-                Console.WriteLine($"Loaded {records.Count} PIN records");
-            } 
-            
+            var csvsPath = "rel/";
+            records = FileManager.ProcessDirectory(csvsPath);
+
+            if (records.Count != 0)
+            {
+                Console.WriteLine($"Loaded {records.Count} ICC-PIN-PUK relationship from file/s");
+            }
+
             try
             {
                 using SCardContext context = new();
@@ -82,20 +65,13 @@ namespace aprt
 
                 while (true)
                 {
-                    Console.WriteLine("Ensure a card is insterted inside a reader and press enter.");
-
-                    ConsoleKeyInfo pressedKey = Console.ReadKey();
-                    SCardError connectResult = rfidReader.Connect(readerName, SCardShareMode.Shared, SCardProtocol.Any);
-
-                    while (!rfidReader.IsConnected)
+                    SCardError connectResult;
+                    do
                     {
-                        Console.WriteLine($"ERROR: Cannot read card because {connectResult}");
-                        Console.WriteLine("Ensure a card is insterted inside a reader and press enter. ->\n");
-                        pressedKey = Console.ReadKey();
+                        Console.WriteLine("Ensure a card is insterted inside a reader and press enter.");
+                        ConsoleKeyInfo pressedKey = Console.ReadKey();
                         connectResult = rfidReader.Connect(readerName, SCardShareMode.Shared, SCardProtocol.Any);
-                    }
-
-                    //-----------------------------
+                    } while (connectResult != SCardError.Success);
 
                     CommandApdu selectFileCommand = ADPUBuilder.SelectICCID(rfidReader.ActiveProtocol);
                     ResponseApdu responseSelect = Transmit(rfidReader, selectFileCommand);
@@ -117,11 +93,16 @@ namespace aprt
                             PinRecord? record = null;
                             string? pin = null;
 
-                            record = records?.Find( x => x.ICC == iccid.Remove(iccid.Length-1) );
-                         
+                            record = records?.Find(x => x.ICCID == iccid.Remove(iccid.Length - 1));
 
-                            if (record?.PIN == null){
 
+                            if (record?.PIN != null)
+                            {
+                                pin = record.PIN;
+                                Console.WriteLine($"\nFound PIN {pin} in file!");
+                            }
+                            else
+                            {
                                 Console.Write($"Enter current PIN -> ");
 
                                 pin = Console.ReadLine();
@@ -131,12 +112,6 @@ namespace aprt
                                     pin = Console.ReadLine();
                                 }
                             }
-                            else{
-                                pin = record.PIN;
-                                Console.WriteLine($"Found PIN {pin} in file.");
-                            }
-
-
 
                             CommandApdu apduCommand = ADPUBuilder.DisablePIN(rfidReader.ActiveProtocol, pin);
 

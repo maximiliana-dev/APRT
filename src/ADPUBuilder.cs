@@ -5,6 +5,18 @@ namespace aprt
 {
     internal class ADPUBuilder
     {
+
+        public static CommandApdu SelectMF(SCardProtocol protocol)
+        {
+            return new CommandApdu(IsoCase.Case4Short, protocol)
+            {
+                CLA = 0xA0,
+                Instruction = InstructionCode.SelectFile,
+                P1 = 0x00,
+                P2 = 0x00,
+                Data = new byte[] { 0x3F, 0x00 }
+            };
+        }
         public static CommandApdu SelectICCID(SCardProtocol protocol)
         {
             return new CommandApdu(IsoCase.Case4Short, protocol)
@@ -32,7 +44,6 @@ namespace aprt
         {
             byte[] pinBytes = System.Text.Encoding.ASCII.GetBytes(pin);
             const byte disableCommand = 0x26;
-
 
             return new CommandApdu(IsoCase.Case3Short, protocol)
             {

@@ -22,8 +22,8 @@
 
   <ItemGroup>
 	<PackageReference Include="CsvHelper" Version="32.0.3" />
-	<PackageReference Include="PCSC" Version="6.1.3" />
-	<PackageReference Include="PCSC.Iso7816" Version="6.1.3" />
+	<PackageReference Include="PCSC" Version="7.0.0" />
+	<PackageReference Include="PCSC.Iso7816" Version="7.0.0" />
   </ItemGroup>
 
 </Project>
